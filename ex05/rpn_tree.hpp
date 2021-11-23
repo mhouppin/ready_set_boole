@@ -23,26 +23,7 @@ enum RPN_Operator
     RPN_NONE = RPN_OPCOUNT
 };
 
-inline std::string rpn_op_str(RPN_Operator op)
-{
-    switch (op)
-    {
-        case RPN_NOT:
-            return "!";
-        case RPN_AND:
-            return "&";
-        case RPN_OR:
-            return "|";
-        case RPN_XOR:
-            return "^";
-        case RPN_IMPLY:
-            return ">";
-        case RPN_EQUIV:
-            return "=";
-        default:
-            return "?";
-    }
-}
+std::string rpn_op_str(RPN_Operator op);
 
 struct RPN_Tree
 {
@@ -61,6 +42,26 @@ struct RPN_Tree
 
         if (right)
             delete right;
+    }
+
+    inline RPN_Tree *deepcopy() const
+    {
+        RPN_Tree *newTree = new RPN_Tree;
+        newTree->self = self;
+        newTree->selfValue = selfValue;
+        newTree->op = op;
+
+        if (left)
+            newTree->left = left->deepcopy();
+        else
+            newTree->left = nullptr;
+
+        if (right)
+            newTree->right = right->deepcopy();
+        else
+            newTree->right = nullptr;
+
+        return newTree;
     }
 
     // Parses a string written in Reverse Polish Notation.

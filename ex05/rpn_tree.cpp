@@ -86,25 +86,188 @@ void RPN_Tree::to_negation_normal_form()
 {
     if (op == RPN_NOT)
     {
-        // Simpliy double "not"s.
-        if (left->op == RPN_NOT)
-        {
-            RPN_Tree *tmp = left;
-            *this = *(left->left);
-            delete tmp->left;
-            delete tmp;
+        RPN_Tree *tmp;
 
-            // Call ourselves again since we modified ourselves.
-            to_negation_normal_form();
-            return ;
+        switch (left->op)
+        {
+            case RPN_NOT:
+                // Simpliy double "not"s.
+                tmp = left;
+                *this = *(left->left);
+                tmp->left->left = nullptr;
+                tmp->left->right = nullptr;
+                delete tmp;
+
+                // Call ourselves again since we modified ourselves.
+                to_negation_normal_form();
+                return ;
+
+            case RPN_AND:
+                // "not (a & b)" is "(not a) | (not b)".
+                op = RPN_OR;
+                tmp = left;
+
+                // Move child left operand to our left.
+                left = new RPN_Tree;
+                left->op = RPN_NOT;
+                left->left = tmp->left;
+                left->right = nullptr;
+
+                // Move child right operand to our right.
+                right = new RPN_Tree;
+                right->op = RPN_NOT;
+                right->left = tmp->right;
+                right->right = nullptr;
+
+                // Delete the old tree.
+                tmp->left = nullptr;
+                tmp->right = nullptr;
+                delete tmp;
+                break ;
+
+            case RPN_OR:
+                // "not (a | b)" is "(not a) & (not b)".
+                op = RPN_AND;
+                tmp = left;
+
+                // Move child left operand to our left.
+                left = new RPN_Tree;
+                left->op = RPN_NOT;
+                left->left = tmp->left;
+                left->right = nullptr;
+
+                // Move child right operand to our right.
+                right = new RPN_Tree;
+                right->op = RPN_NOT;
+                right->left = tmp->right;
+                right->right = nullptr;
+
+                // Delete the old tree.
+                tmp->left = nullptr;
+                tmp->right = nullptr;
+                delete tmp;
+                break ;
+
+            case RPN_IMPLY:
+                // "not (a => b)" is "(not a) | b".
+                op = RPN_OR;
+                tmp = left;
+
+                // Move child left operand to our left.
+                left = new RPN_Tree;
+                left->op = RPN_NOT;
+                left->left = tmp->left;
+                left->right = nullptr;
+
+                // Move child right operand to our right.
+                right = tmp->right;
+
+                // Delete the old tree.
+                tmp->left = nullptr;
+                tmp->right = nullptr;
+                delete tmp;
+                break ;
+
+            case RPN_EQUIV:
+                // "not (a <=> b)" is "(not a) & b | a & (not b)".
+                op = RPN_OR;
+                tmp = left;
+
+                // We keep the previous subtree for the left child.
+                left = new RPN_Tree;
+                left->op = RPN_AND;
+                left->left = new RPN_Tree;
+                left->left->op = RPN_NOT;
+                left->left->left = tmp->left;
+                left->right = tmp->right;
+
+                // We need to duplicte the subtree for the right child.
+                right = new RPN_Tree;
+                right->op = RPN_AND;
+                right->left = tmp->left->deepcopy();
+                right->right = new RPN_Tree;
+                right->right->op = RPN_NOT;
+                right->right->left = tmp->right->deepcopy();
+
+                // Delete the old tree.
+                tmp->left = nullptr;
+                tmp->right = nullptr;
+                delete tmp;
+                break ;
+
+            default:
+                // Nothing to do.
+                break ;
         }
+    }
+    else if (op == RPN_IMPLY)
+    {
+        // "a => b" is "!a | b".
+        op = RPN_OR;
+        RPN_Tree *tmp = left;
+
+        left = new RPN_Tree;
+        left->op = RPN_NOT;
+        left->left = tmp;
+    }
+    else if (op == RPN_EQUIV)
+    {
+        // "a <=> b" is "(a => b) & (b => a)".
+        op = RPN_AND;
+        RPN_Tree *tmpLeft = left;
+        RPN_Tree *tmpRight = right;
+
+        // We keep the previous subtree for the left child.
+        left = new RPN_Tree;
+        left->op = RPN_IMPLY;
+        left->left = tmpLeft;
+        left->right = tmpRight;
+
+        // We need to duplicte the subtree for the right child.
+        right = new RPN_Tree;
+        right->op = RPN_IMPLY;
+        right->left = tmpRight->deepcopy();
+        right->right = tmpLeft->deepcopy();
+    }
+
+    if (left)
+        left->to_negation_normal_form();
+    if (right)
+        right->to_negation_normal_form();
+}
+
+std::string rpn_op_str(RPN_Operator op)
+{
+    switch (op)
+    {
+        case RPN_NOT:   return "!";
+        case RPN_AND:   return "&";
+        case RPN_OR:    return "|";
+        case RPN_XOR:   return "^";
+        case RPN_IMPLY: return ">";
+        case RPN_EQUIV: return "=";
+        default:        return "?";
+    }
+}
+
+std::string rpn_op_pretty_str(RPN_Operator op)
+{
+    switch (op)
+    {
+        case RPN_NOT:   return "!";
+        case RPN_AND:   return "&";
+        case RPN_OR:    return "|";
+        case RPN_XOR:   return "^";
+        case RPN_IMPLY: return "=>";
+        case RPN_EQUIV: return "<=>";
+        default:        return "?";
     }
 }
 
 // std::ostream overload for debugging purposes on RPN_Operator.
 std::ostream& operator<<(std::ostream& os, const RPN_Operator& op)
 {
-    os << rpn_op_str(op);
+    os << rpn_op_pretty_str(op);
     return os;
 }
 
