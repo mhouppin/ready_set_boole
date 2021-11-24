@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "rpn_tree.hpp"
 
 void print_truth_table(const std::string& rpnStr)
