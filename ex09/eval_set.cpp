@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <sstream>
 #include "rpn_tree.hpp"
 
 std::vector<int> eval_set(const std::string& rpnStr, std::vector<std::vector<int> > sets)
@@ -53,6 +54,7 @@ std::vector<int> eval_set(const std::string& rpnStr, std::vector<std::vector<int
 
     for (std::vector<int> &set : sets)
     {
+        if (set.size())
         setList.push_back(&set);
         itList.push_back(set.begin());
     }
@@ -82,25 +84,40 @@ std::vector<int> eval_set(const std::string& rpnStr, std::vector<std::vector<int
 
     std::vector<int> finalSet = tree.eval_set(sets, omega);
 
-#ifdef DEBUG
-    for (std::vector<int>::iterator it = finalSet.begin(); it != finalSet.end(); ++it)
-        std::cout << (it == finalSet.begin() ? "[" : ", ") << (*it);
-
-    std::cout << "]" << std::endl;
-#endif
-
     return finalSet;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
-    std::vector<std::vector<int> > sets {
-        {0, 1, 2},
-        {0, 3, 4},
-    };
+    if (argc < 3)
+    {
+        std::cout << "usage: " << *argv << " rpn_formula <A_elements> [ <B_elements ... ]" << std::endl;
+        return 1;
+    }
 
-    eval_set("AB&", sets);
-    eval_set("AB|", sets);
-  
+    std::vector<std::vector<int> > sets;
+
+    for (int i = 2; i < argc; ++i)
+    {
+        sets.push_back(std::vector<int>());
+
+        std::istringstream is{std::string(argv[i])};
+        std::string token;
+
+        is >> std::skipws;
+
+        while (is >> token)
+            sets.back().push_back(std::stoi(token));
+    }
+
+    std::vector<int> finalSet = eval_set(argv[1], sets);
+
+    std::cout << '[';
+
+    for (std::vector<int>::iterator it = finalSet.begin(); it != finalSet.end(); ++it)
+        std::cout << (it == finalSet.begin() ? "" : ", ") << (*it);
+
+    std::cout << ']' << std::endl;
+
     return 0;
 }
