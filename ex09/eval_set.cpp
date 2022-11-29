@@ -41,8 +41,6 @@ std::vector<int> eval_set(const std::string& rpnStr, std::vector<std::vector<int
     std::vector<int> omega;
 
     // K sets, N elements per set
-    // PushAll + Sort + Uniq:
-    // Compute O(KN * (1 + log(K) + log(N) + KN))
     // Sort + PushUniq:
     // Compute O(KN * (K + log(N)))
 
@@ -53,11 +51,11 @@ std::vector<int> eval_set(const std::string& rpnStr, std::vector<std::vector<int
     std::vector<std::vector<int>*> setList;
 
     for (std::vector<int> &set : sets)
-    {
         if (set.size())
-        setList.push_back(&set);
-        itList.push_back(set.begin());
-    }
+        {
+            setList.push_back(&set);
+            itList.push_back(set.begin());
+        }
 
     while (setList.size())
     {

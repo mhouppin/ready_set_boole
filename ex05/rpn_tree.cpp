@@ -148,19 +148,48 @@ void RPN_Tree::to_negation_normal_form()
                 delete tmp;
                 break ;
 
-            case RPN_IMPLY:
-                // "not (a => b)" is "(not a) | b".
+            case RPN_XOR:
+                // "not (a ^ b)" is "(a & b) | (not a & not b)".
                 op = RPN_OR;
+                tmp = left;
+
+                // We keep the previous subtree for the left child.
+                left = new RPN_Tree;
+                left->op = RPN_AND;
+                left->left = tmp->left;
+                left->right = tmp->right;
+
+                // We need to duplicte the subtree for the right child.
+                right = new RPN_Tree;
+                right->op = RPN_AND;
+                right->left = new RPN_Tree;
+                right->left->op = RPN_NOT;
+                right->left->left = tmp->left->deepcopy();
+                right->left->right = nullptr;
+                right->right = new RPN_Tree;
+                right->right->op = RPN_NOT;
+                right->right->left = tmp->right->deepcopy();
+                right->right->right = nullptr;
+
+                // Delete the old tree.
+                tmp->left = nullptr;
+                tmp->right = nullptr;
+                delete tmp;
+                break ;
+
+            case RPN_IMPLY:
+                // "not (a => b)" is "(not b) & a".
+                op = RPN_AND;
                 tmp = left;
 
                 // Move child left operand to our left.
                 left = new RPN_Tree;
                 left->op = RPN_NOT;
-                left->left = tmp->left;
+                left->left = tmp->right;
                 left->right = nullptr;
 
                 // Move child right operand to our right.
-                right = tmp->right;
+                right = tmp->left;
 
                 // Delete the old tree.
                 tmp->left = nullptr;
@@ -199,6 +228,31 @@ void RPN_Tree::to_negation_normal_form()
                 // Nothing to do.
                 break ;
         }
+    }
+    else if (op == RPN_XOR)
+    {
+        // "a ^ b" is "(!a & b) | (a & !b).
+        op = RPN_OR;
+        RPN_Tree *tmpLeft = left;
+        RPN_Tree *tmpRight = right;
+
+        // We keep the previous subtree for the left child.
+        left = new RPN_Tree;
+        left->op = RPN_AND;
+        left->left = new RPN_Tree;
+        left->left->op = RPN_NOT;
+        left->left->left = tmpLeft;
+        left->left->right = nullptr;
+        left->right = tmpRight;
+
+        // We need to duplicte the subtree for the right child.
+        right = new RPN_Tree;
+        right->op = RPN_AND;
+        right->left = tmpLeft->deepcopy();
+        right->right = new RPN_Tree;
+        right->right->op = RPN_NOT;
+        right->right->left = tmpRight->deepcopy();
+        right->right->right = nullptr;
     }
     else if (op == RPN_IMPLY)
     {
