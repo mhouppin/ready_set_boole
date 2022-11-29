@@ -36,6 +36,6 @@ int main(void)
         uint32_t a = rand() % 1000;
         uint32_t b = rand() % 1000;
 
-        std::cout << a << " * " << b << " = " << multiplier(a, b) << std::endl;
+        std::cout << a << " * " << b << " = " << multiplier(a, b) << " (real " << (a * b) << ")" << std::endl;
     }
 }
