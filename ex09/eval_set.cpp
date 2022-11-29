@@ -36,8 +36,6 @@ std::vector<int> eval_set(const std::string& rpnStr, std::vector<std::vector<int
         return std::vector<int>();
     }
 
-    tree.to_negation_normal_form();
-
     std::vector<int> omega;
 
     // K sets, N elements per set

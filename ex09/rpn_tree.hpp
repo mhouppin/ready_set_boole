@@ -69,8 +69,6 @@ struct RPN_Tree
     std::string rpn_parse(const std::string& rpnStr);
     std::string rpn_out() const;
 
-    void to_negation_normal_form();
-
     std::vector<int> eval_set(const std::vector<std::vector<int> >& set_list, const std::vector<int>& omega) const;
 
     // Recursively checks if none of the siblings have their op set to RPN_NONE.
