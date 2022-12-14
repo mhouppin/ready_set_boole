@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iomanip>
 #include "rpn_tree.hpp"
 
 size_t rpnvar_parse(const std::string& rpnStr, RPN_Variable vars[26])

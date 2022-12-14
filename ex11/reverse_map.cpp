@@ -22,7 +22,7 @@ void rotate_quadrant(uint16_t &x, uint16_t &y, uint16_t xb, uint16_t yb)
 
 std::pair<uint16_t, uint16_t> reverse_map(double r)
 {
-    uint32_t d = std::min(r * Div, Cldiv);
+    uint32_t d = std::min(r * Div + 0.5, Cldiv);
 
     std::pair<uint16_t, uint16_t> point = {0, 0};
 

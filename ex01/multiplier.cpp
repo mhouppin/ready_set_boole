@@ -27,15 +27,14 @@ uint32_t multiplier(uint32_t a, uint32_t b)
     return ret;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
-    srand(time(NULL));
-
-    for (size_t i = 0; i < 100; ++i)
+    if (argc != 3)
     {
-        uint32_t a = rand() % 1000;
-        uint32_t b = rand() % 1000;
-
-        std::cout << a << " * " << b << " = " << multiplier(a, b) << " (real " << (a * b) << ")" << std::endl;
+        std::cout << " Usage: " << *argv << " lhs rhs" << std::endl;
+        return 1;
     }
+
+    std::cout << multiplier(strtoul(argv[1], NULL, 10), strtoul(argv[2], NULL, 10)) << std::endl;
+    return 0;
 }

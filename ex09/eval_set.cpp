@@ -28,7 +28,7 @@ std::vector<int> eval_set(const std::string& rpnStr, std::vector<std::vector<int
             return a.letter < b.letter;
         });
 
-    if (size_t(vars[varCount - 1].letter - 'A') > sets.size())
+    if (size_t(vars[varCount - 1].letter - 'A') >= sets.size())
     {
 #ifdef DEBUG
         std::cerr << "Not enough sets specified for evaluation." << std::endl;

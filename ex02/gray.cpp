@@ -8,14 +8,14 @@ uint32_t gray_code(uint32_t v)
     return v ^ (v >> 1);
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
-    srand(time(NULL));
-
-    for (size_t i = 0; i < 100; ++i)
+    if (argc != 2)
     {
-        uint32_t a = rand() % 1000;
-
-        std::cout << "gray_code(" << a << ") = " << gray_code(a) << std::endl;
+        std::cout << " Usage: " << *argv << " lhs" << std::endl;
+        return 1;
     }
+
+    std::cout << gray_code(strtoul(argv[1], NULL, 10)) << std::endl;
+    return 0;
 }
