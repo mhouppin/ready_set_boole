@@ -1,6 +1,7 @@
 from typing import Callable
 import unittest
 import subprocess
+import random
 
 ADDMULGRAY_PARAMS = [
     0,
@@ -596,5 +597,69 @@ class TestEx06(unittest.TestCase):
 
                 self.assertEqual(rpn_proc.stdout, cnf_proc.stdout)
 
+class TextEx10(unittest.TestCase):
+    def setUp(self):
+        proc = subprocess.run([
+            "g++", "-Wall", "-Wextra", "-Werror", "-std=c++11", "-O2",
+            "-o", "ex10/map", "ex10/map.cpp"
+        ])
+        if proc.returncode != 0:
+            self.skipTest('Compilation failed')
+
+        proc = subprocess.run([
+            "g++", "-Wall", "-Wextra", "-Werror", "-std=c++11", "-O2",
+            "-o", "ex11/reverse_map", "ex11/reverse_map.cpp"
+        ])
+        if proc.returncode != 0:
+            self.skipTest('Compilation failed')
+
+    def tearDown(self) -> None:
+        proc = subprocess.run([
+            "rm", "-f", "ex10/map"
+        ])
+        proc = subprocess.run([
+            "rm", "-f", "ex11/reverse_map"
+        ])
+
+    def test_map_00_noconflict(self):
+        result_list = []
+        input_list = []
+
+        random.seed(14)
+
+        for _ in range(1000):
+            x = random.randint(0, 65535)
+            y = random.randint(0, 65535)
+
+            with self.subTest(x=x, y=y):
+                map_proc = subprocess.run(["./ex10/map", str(x), str(y)], stdout=subprocess.PIPE, text=True)
+
+                self.assertEqual(map_proc.returncode, 0)
+
+                if (x, y) not in input_list:
+                    self.assertNotIn(map_proc.stdout, result_list)
+                    input_list.append((x, y))
+                    result_list.append(map_proc.stdout)
+
+    def test_map_01_bijective(self):
+        random.seed(15)
+
+        for _ in range(1000):
+            x = random.randint(0, 65535)
+            y = random.randint(0, 65535)
+
+            with self.subTest(x=x, y=y):
+                map_proc = subprocess.run(["./ex10/map", str(x), str(y)], stdout=subprocess.PIPE, text=True)
+
+                self.assertEqual(map_proc.returncode, 0)
+
+                revmap_proc = subprocess.run(["./ex11/reverse_map", map_proc.stdout.strip()], stdout=subprocess.PIPE, text=True)
+
+                revcoords = revmap_proc.stdout.split()
+
+                self.assertEqual(len(revcoords), 2)
+                self.assertEqual(str(x), revcoords[0])
+                self.assertEqual(str(y), revcoords[1])
+
 if __name__ == '__main__':
-    unittest.main(testRunner=unittest.TextTestRunner(resultclass=NumbersTestResult))
+    unittest.main()
